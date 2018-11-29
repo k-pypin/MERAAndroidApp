@@ -1,0 +1,42 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="io.adafruit.com"
+        android:inputType="textCapWords"
+        android:key="host"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Host" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="1883"
+        android:inputType="textCapWords"
+        android:key="port"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Port" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="user"
+        android:inputType="textCapWords"
+        android:key="username"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="User Name" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="password"
+        android:inputType="textCapWords"
+        android:key="password"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Password" />
+
+</PreferenceScreen>
