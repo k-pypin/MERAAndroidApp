@@ -1,9 +1,8 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="io.adafruit.com"
         android:inputType="textCapWords"
-        android:key="host"
+        android:key="@string/connect_host_key"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -11,9 +10,9 @@
 
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="1883"
-        android:inputType="textCapWords"
-        android:key="port"
+        android:inputType="number"
+        android:digits="0123456789"
+        android:key="@string/connect_port_key"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -21,9 +20,8 @@
 
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="user"
         android:inputType="textCapWords"
-        android:key="username"
+        android:key="@string/connect_user_key"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"
@@ -31,9 +29,8 @@
 
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="password"
         android:inputType="textCapWords"
-        android:key="password"
+        android:key="@string/connect_pass_key"
         android:maxLines="1"
         android:selectAllOnFocus="true"
         android:singleLine="true"

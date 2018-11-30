@@ -1,16 +1,19 @@
 package com.example.trojan52.mqttsmartdevicecontroller;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.content.Intent;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
+    ConnectionData cData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,6 +30,30 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        SharedPreferences prefs = PreferenceManager
+                                  .getDefaultSharedPreferences(getBaseContext());
+        cData = new ConnectionData(
+                prefs,
+                getApplicationContext().getString(R.string.connect_host_key),
+                getApplicationContext().getString(R.string.connect_port_key),
+                getApplicationContext().getString(R.string.connect_user_key),
+                getApplicationContext().getString(R.string.connect_pass_key)
+        );
+        if(cData.hasEmptyValues()) {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+        }
+
+    }
+
+    @Override
+    protected void onRestart() {
+        cData.updateValues();
+        if(cData.hasEmptyValues()) {
+            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(intent);
+        }
+        super.onRestart();
     }
 
     @Override
@@ -46,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_settings) {
             Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
             startActivity(intent);
-            return true;
+            return super.onOptionsItemSelected(item);
         }
 
         return super.onOptionsItemSelected(item);
