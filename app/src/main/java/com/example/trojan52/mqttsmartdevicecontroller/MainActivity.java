@@ -1,14 +1,19 @@
 package com.example.trojan52.mqttsmartdevicecontroller;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -49,6 +54,7 @@ import java.util.HashMap;
 import cz.msebera.android.httpclient.Header;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int REQ_PERMISSION = 120;
     private ConnectionData cData;
     private MqttAndroidClient client;
     private IMqttToken subToken;
@@ -63,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        reqPermissions();
         SharedPreferences prefs = PreferenceManager
                                   .getDefaultSharedPreferences(getBaseContext());
         devices = new ArrayList<>();
@@ -384,6 +391,22 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return false;
+    }
+
+    public void reqPermissions() {
+        int ReqEX = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+        if (ReqEX != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQ_PERMISSION);
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions,grantResults);
+        if(requestCode == REQ_PERMISSION && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            System.out.println("OK");
+        } else {
+            System.out.print("NO");
+        }
     }
 
 }

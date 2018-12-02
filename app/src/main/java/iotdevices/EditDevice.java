@@ -55,17 +55,17 @@ public class EditDevice extends ADevice {
 
     @Override
     public void setID(int id) {
-        hLay.setId(id);
+        submitBtn.setId(id);
     }
 
     @Override
     public int getID() {
-        return hLay.getId();
+        return submitBtn.getId();
     }
 
     @Override
     public View getView() {
-        return hLay;
+        return submitBtn;
     }
 
     @Override
