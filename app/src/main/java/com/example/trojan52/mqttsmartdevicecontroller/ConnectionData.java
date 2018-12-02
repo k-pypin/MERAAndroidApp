@@ -21,6 +21,18 @@ public class ConnectionData {
         updateValues();
     }
 
+    public boolean valuesUpdated() {
+        if (this.Host.equals(prefs.getString(HostPref, ""))
+                && this.Port.equals(prefs.getString(PortPref, ""))
+                && this.UserName.equals(prefs.getString(UserPref, ""))
+                && this.Password.equals(prefs.getString(PassPref, ""))) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+
     public void updateValues() {
         this.Host = prefs.getString(HostPref, "");
         this.Port = prefs.getString(PortPref, "");

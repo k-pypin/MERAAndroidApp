@@ -26,6 +26,7 @@ repositories {
 }
 
 dependencies {
+    compile 'com.loopj.android:android-async-http:1.4.9'
     compile('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2') {
         exclude module: 'support-v4'
     }

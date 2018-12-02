@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginTop="9dp"
+    android:orientation="vertical"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    tools:context=".AddDevice">
+
+    <Spinner
+        android:id="@+id/spnDeviceFeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp" />
+
+    <EditText
+        style="@style/Widget.MaterialComponents.TextInputEditText.FilledBox"
+        android:id="@+id/editDeviceName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:ems="10"
+        android:hint="@string/device_name_hint"
+        android:inputType="textPersonName" />
+
+    <Spinner
+        android:id="@+id/spnDeviceType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="9dp"
+        android:spinnerMode="dialog"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/btnAddDevice"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:height="60dp"
+            android:text="@string/device_add_button"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+
+</LinearLayout>

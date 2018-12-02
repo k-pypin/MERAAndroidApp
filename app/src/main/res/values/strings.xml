@@ -1,9 +1,18 @@
 <resources>
-    <string name="app_name">Mqtt Device Controller</string>
+    <string name="app_name">Device Controller</string>
     <string name="action_settings">Settings</string>
+    <string name="action_add">Add Device</string>
     <string name="title_activity_settings">Settings</string>
     <string name="connect_host_key">connect_host</string>
     <string name="connect_port_key">connect_port</string>
     <string name="connect_user_key">connect_username</string>
     <string name="connect_pass_key">connect_password</string>
+    <string name="device_name_hint">Имя устройства</string>
+    <string name="device_add_button">Добавить</string>
+    <string name="devices_filename">devices.json</string>
+    <string-array name="deviceType_array">
+        <item>Переключаемое</item>
+        <item>Информационное</item>
+        <item>Редактируемое</item>
+    </string-array>
 </resources>
