@@ -1,17 +1,24 @@
 package com.example.trojan52.mqttsmartdevicecontroller;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import org.eclipse.paho.android.service.MqttAndroidClient;
@@ -29,12 +36,15 @@ import org.json.JSONObject;
 
 import com.loopj.android.http.*;
 
+import iotdevices.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 
 import cz.msebera.android.httpclient.Header;
 
@@ -45,7 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, ArrayList<AvailableDeviceInfo>> availableDevicesByGroup;
     private MenuItem addMenuItem;
     private ProgressBar circularProgress;
-
+    private ArrayList<ADevice> devices;
+    private AlertDialog.Builder builder;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,9 +65,10 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         SharedPreferences prefs = PreferenceManager
                                   .getDefaultSharedPreferences(getBaseContext());
+        devices = new ArrayList<>();
         circularProgress = (ProgressBar) findViewById(R.id.progressBar);
         circularProgress.setVisibility(View.VISIBLE);
-
+        builder = new AlertDialog.Builder(this);
         cData = new ConnectionData(
                 prefs,
                 getApplicationContext().getString(R.string.connect_host_key),
@@ -69,8 +81,6 @@ public class MainActivity extends AppCompatActivity {
             Toast t =  Toast.makeText(MainActivity.this,"Заполните данные для подключения.", Toast.LENGTH_SHORT);
             t.setGravity(Gravity.CENTER, 0 , 0);
             t.show();
-            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(intent);
         } else {
             initConnection();
         }
@@ -87,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
             Toast t =  Toast.makeText(MainActivity.this,"Заполните данные для подключения.", Toast.LENGTH_SHORT);
             t.setGravity(Gravity.CENTER, 0 , 0);
             t.show();
-            Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
-            startActivity(intent);
         } else {
             initConnection();
         }
@@ -189,7 +197,21 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
-                System.out.println("t: " + topic + " m: " + message);
+                for(ADevice x : devices) {
+                    if((x.getFeedBaseUrl() + x .getFeed()).equals(topic))
+                        x.setValue(message.toString());
+                }
+                NotificationCompat.Builder builder =
+                        new NotificationCompat.Builder(getApplicationContext())
+                                .setSmallIcon(R.mipmap.ic_launcher)
+                                .setContentTitle("Изменено состояние устройства")
+                                .setContentText(topic + " теперь имеет значение: " + message.toString());
+
+                Notification notification = builder.build();
+
+                NotificationManager notificationManager =
+                        (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                notificationManager.notify(1, notification);
             }
 
             @Override
@@ -233,14 +255,137 @@ public class MainActivity extends AppCompatActivity {
             }
             addMenuItem.setVisible(true);
             circularProgress.setVisibility(View.GONE);
+            UpdateDevices();
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     private void UpdateDevices() {
+        File devFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + getApplicationContext().getString(R.string.devices_filename));
+        JSONObject jObj;
+        DeviceFactory factory = new DeviceFactory();
+        int id = 0;
+        try {
+            if(devFile.isFile()) {
+                FileInputStream inputStream = new FileInputStream(devFile);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null){
+                    stringBuilder.append(line);
+                }
+                jObj = new JSONObject(stringBuilder.toString());
+                if(jObj.has("devices")) {
+                    JSONArray devArr = jObj.getJSONArray("devices");
+                    devices.clear();
+                    for(int i = 0; i < devArr.length(); ++i) {
+                        JSONObject curObj = new JSONObject(devArr.get(i).toString());
+                        if(curObj.has("group") && curObj.has("feed")) {
+                            if(availableDevicesByGroup.containsKey(curObj.getString("group"))) {
+                                ArrayList<AvailableDeviceInfo> devs = availableDevicesByGroup.get(curObj.getString("group"));
+                                boolean finded = false;
+                                String feed = curObj.getString("feed");
+                                for(AvailableDeviceInfo x : devs) {
+                                    if(x.getFeed().equals(feed)) {
+                                        finded = true;
+                                        break;
+                                    }
+                                }
+                                if(finded) {
+                                    ADevice dev = factory.create(curObj, (LinearLayout)findViewById(R.id.scrollable_vlayout));
+                                    if(dev != null) {
+                                        dev.setMqttClient(client);
+                                        dev.setFeedBaseUrl(cData.getUserName() + "/feeds/");
+                                        dev.getLastValueFromUrl("http://" + cData.getHost() + "/api/v2/" + cData.getUserName() + "/feeds/" + dev.getFeed() + "/data/retain/?X-AIO-Key=" + cData.getPassword());
+                                        dev.setID(id);
+                                        devices.add(dev);
+
+                                        dev.getView().setOnLongClickListener((View v)-> {
+                                            builder.setMessage("Удалить устройство?")
+                                                    .setPositiveButton("Удалить", new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int i) {
+                                                            deleteDeviceById(v.getId());
+                                                            UpdateDevices();
+                                                        }
+                                                    })
+                                                    .setNegativeButton("Отмена", new DialogInterface.OnClickListener() {
+                                                        public void onClick(DialogInterface dialog, int id) {
+
+                                                        }
+                                                    });
+                                            builder.show();
+                                            return false;
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                        ++id;
+                    }
+                }
+                addDevicesToScreen();
+            }
+
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
+    private void addDevicesToScreen() {
+        LinearLayout layout = (LinearLayout)findViewById(R.id.scrollable_vlayout);
+        layout.removeAllViews();
+        for(ADevice x : devices) {
+            x.addToLayout();
+        }
+    }
+
+    private boolean deleteDeviceById(int id) {
+        File devFile = new File(Environment.getExternalStorageDirectory().toString() + "/" + getApplicationContext().getString(R.string.devices_filename));
+        JSONObject jObj;
+        if(devFile.isFile()) {
+            try {
+                FileInputStream inputStream = new FileInputStream(devFile);
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+                StringBuilder stringBuilder = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null) {
+                    stringBuilder.append(line);
+                }
+                jObj = new JSONObject(stringBuilder.toString());
+
+                if(jObj.has("devices")) {
+                    JSONArray devArr = jObj.getJSONArray("devices");
+                    if(id < devArr.length()) {
+                        JSONArray newArr = new JSONArray();
+                        for(int i = 0; i < devArr.length(); ++i) {
+                            if( i != id)
+                                newArr.put(devArr.getJSONObject(i));
+                        }
+                        jObj.put("devices", newArr);
+                        devFile.delete();
+                        devFile.createNewFile();
+                        FileOutputStream outputStream = new FileOutputStream(devFile);
+                        outputStream.write(jObj.toString().getBytes());
+                        outputStream.close();
+                        return true;
+                    }
+                } else {
+                    return false;
+                }
+            } catch (Exception e ) {
+                e.printStackTrace();
+            }
+
+        } else {
+            return false;
+        }
+        return false;
+    }
 
 }
+
+
