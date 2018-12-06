@@ -245,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getDevicesFromJsonString(String jsonString) {
+        availableDevicesByGroup.clear();
         try {
             JSONArray jArr = new JSONArray(jsonString);
             for (int i = 0; i < jArr.length(); ++i) {
